@@ -27,23 +27,25 @@ class phpListAdminAuthentication
             sql_escape($login));
         $req = Sql_Query($query);
         $admindata = Sql_Fetch_Assoc($req);
-        $encryptedPass = hash(HASH_ALGO, $password);
         $passwordDB = $admindata['password'];
-        //Password encryption verification.
-        if (strlen($passwordDB) < $GLOBALS['hash_length']) { // Passwords are encrypted but the actual is not.
-            //Encrypt the actual DB password before performing the validation below.
-            $encryptedPassDB = hash(HASH_ALGO, $passwordDB);
-            $query = sprintf('update %s set password = "%s" where loginname = "%s"', $GLOBALS['tables']['admin'],
-                $encryptedPassDB, sql_escape($login));
-            $passwordDB = $encryptedPassDB;
-            $req = Sql_Query($query);
-        }
+
         if ($admindata['disabled']) {
             return array(0, s('your account has been disabled'));
+
         } elseif (//Password validation.
-            !empty($passwordDB) && $encryptedPass == $passwordDB
+        	password_verify($password, $passwordDB)
         ) {
+        	// Password matches stored hash, now check if it should be updated before returning
+        	if (password_needs_rehash($passwordDB, PASSWORD_DEFAULT)) {
+        		// Password hash stored in database is using an older algorithm and needs to be updated
+        		$newpasswordDB = password_hash($password, PASSWORD_DEFAULT);
+        		$query = sprintf('update %s set password = "%s" where loginname = "%s"', $GLOBALS['tables']['admin'],
+        				$newpasswordDB, sql_escape($login));
+        		$req = Sql_Query($query);
+        	}
+        	// return sucess
             return array($admindata['id'], 'OK');
+
         } else {
             if (!empty($GLOBALS['admin_auth_module'])) {
                 Error(s('Admin authentication has changed, please update your admin module'),
@@ -52,8 +54,22 @@ class phpListAdminAuthentication
                 return;
             }
 
+            // Backwards compatability for passwords created before phpList version TODO
+            // remove after phpList version TODO
+            $compathash = hash(HASH_ALGO, $password);
+            if (!empty($passwordDB) && hash_equals($passwordDB, $compathash)) {
+            	$newpasswordDB = password_hash($password, PASSWORD_DEFAULT);
+            	$query = sprintf('update %s set password = "%s" where loginname = "%s"', $GLOBALS['tables']['admin'],
+            			$newpasswordDB, sql_escape($login));
+            	$req = Sql_Query($query);
+
+            	// return sucess
+            	return array($admindata['id'], 'OK');
+            }
+
             return array(0, s('incorrect password'));
         }
+
         if (!empty($GLOBALS['admin_auth_module'])) {
             Error(s('Admin authentication has changed, please update your admin module'),
                 'https://resources.phplist.com/documentation/errors/adminauthchange');
