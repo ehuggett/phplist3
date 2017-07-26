@@ -20,7 +20,17 @@ function Sql_Connect($host, $user, $password, $database)
     }
     $db = mysqli_init();
     $compress = empty($database_connection_compression) ? 0 : MYSQLI_CLIENT_COMPRESS;
-    $secure = empty($database_connection_ssl) ? 0 : MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT;
+    
+    $secure = MYSQLI_CLIENT_SSL;
+    if ($database_connection_ssl === false) {
+        // ssl is not enabled for database connections
+        $secure = 0;
+    } else {
+        if ($database_connection_ssl_trust === false) {
+            // ssl is enabled but certificate checking has been disabled
+            $secure = MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT;
+        }
+    }
 
     if (!mysqli_real_connect($db, $host, $user, $password, $database, $database_port, $database_socket, $compress | $secure)) {
         $errno = mysqli_connect_errno();
