@@ -153,6 +153,10 @@ if (!isset($database_connection_ssl)) {
     $database_connection_ssl = false;
 }
 
+if (!isset($database_connection_ssl_trust)) {
+    $database_connection_ssl_trust = true;
+}
+
 //# @@ would be nice to move this to the config file at some point
 // http://mantis.phplist.com/view.php?id=15521
 //# set it on the fly, although that will probably only work with Apache
