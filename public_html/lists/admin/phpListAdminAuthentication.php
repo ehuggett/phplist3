@@ -37,11 +37,7 @@ class phpListAdminAuthentication
         ) {
         	// Password matches stored hash, now check if it should be updated before returning
         	if (password_needs_rehash($passwordDB, PASSWORD_DEFAULT)) {
-        		// Password hash stored in database is using an older algorithm and needs to be updated
-        		$newpasswordDB = password_hash($password, PASSWORD_DEFAULT);
-        		$query = sprintf('update %s set password = "%s" where loginname = "%s"', $GLOBALS['tables']['admin'],
-        				$newpasswordDB, sql_escape($login));
-        		$req = Sql_Query($query);
+                $this->setPassword($admindata['id'], $password);
         	}
         	// return sucess
             return array($admindata['id'], 'OK');
@@ -58,11 +54,7 @@ class phpListAdminAuthentication
             // remove after phpList version TODO
             $compathash = hash(HASH_ALGO, $password);
             if (!empty($passwordDB) && hash_equals($passwordDB, $compathash)) {
-            	$newpasswordDB = password_hash($password, PASSWORD_DEFAULT);
-            	$query = sprintf('update %s set password = "%s" where loginname = "%s"', $GLOBALS['tables']['admin'],
-            			$newpasswordDB, sql_escape($login));
-            	$req = Sql_Query($query);
-
+                $this->setPassword($admindata['id'], $password);
             	// return sucess
             	return array($admindata['id'], 'OK');
             }
@@ -78,6 +70,22 @@ class phpListAdminAuthentication
         }
 
         return array(0, s('Login failed'));
+    }
+    /**
+     * setPassword, Change the password for a given userid, password will be hashed
+     *
+     * @param int $adminid ID of the admin
+     * @param string $password new password (plaintext)
+     */
+    public function setPassword($adminid, $password) {
+        $newpassword = password_hash($password, PASSWORD_DEFAULT);
+        Sql_Query(
+            sprintf('update %s set password = "%s" where id = "%d"',
+                $GLOBALS['tables']['admin'],
+                $newpassword,
+                $adminid
+            )
+        );
     }
 
     public function getPassword($email)
