@@ -36,8 +36,7 @@ $link = PageLink2('admin&amp;id=1', s('Go there'));
 if (!empty($link)) {
     $html .= '<tr><td>'.s('Change admin password').' </td>
   <td>' .$link.'</td><td>';
-    $curpwd = Sql_Fetch_Row_Query("select password from {$tables['admin']} where loginname = \"admin\"");
-    if ($curpwd[0] != 'phplist' && $curpwd[0] != encryptPass('phplist')) {
+    if ($GLOBALS['admin_auth']->validateLogin("admin","phplist")[0] === 0) {
         $html .= $GLOBALS['img_tick'];
     } else {
         $alldone = 0;

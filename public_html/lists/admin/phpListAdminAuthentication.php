@@ -72,20 +72,31 @@ class phpListAdminAuthentication
         return array(0, s('Login failed'));
     }
     /**
-     * setPassword, Change the password for a given userid, password will be hashed
+     * setPassword,
+     *
+     * Change the password for a given userid, password will be hashed
+     * but it will NOT be checked for suitability
      *
      * @param int $adminid ID of the admin
      * @param string $password new password (plaintext)
+     *
+     * @return true on sucess, false on failure
      */
     public function setPassword($adminid, $password) {
+        if (empty($password)) return false;
         $newpassword = password_hash($password, PASSWORD_DEFAULT);
-        Sql_Query(
-            sprintf('update %s set password = "%s" where id = "%d"',
-                $GLOBALS['tables']['admin'],
-                $newpassword,
-                $adminid
-            )
+        // "false or null may be returned" on error
+        if (is_string($newpassword) === false) {
+            die("password_compat / password_hash failure");
+            return false;
+        }
+
+        $res = Sql_Query(
+            sprintf('update %s set password = "%s", passwordchanged=now() where id = "%d"',
+                $GLOBALS['tables']['admin'],$newpassword,$adminid )
         );
+
+        return $res === true;
     }
 
     public function getPassword($email)

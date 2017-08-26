@@ -69,15 +69,16 @@ if (isset($_POST['password1']) && isset($_POST['password2'])) {
     $admin = $adminData[0];
     if ($p1 == $p2 && !empty($admin)) {
         //Database update.
-        $SQLquery = sprintf("update %s set password='%s', passwordchanged=now() where loginname = '%s';",
-            $GLOBALS['tables']['admin'], encryptPass($p1), $admin);
-        //#     print $SQLquery;
-        $query = Sql_Query($SQLquery);
-        echo $GLOBALS['I18N']->get('Your password was changed succesfully').'<br/>';
-        echo '<p><a href="./" class="action-button">'.$GLOBALS['I18N']->get('Continue').'</a></p>';
-        //Token deletion.
-        $SQLquery = sprintf('delete from %s where admin = %d;', $GLOBALS['tables']['admin_password_request'], $adminId);
-        $query = Sql_Query($SQLquery);
+        if ( $GLOBALS['admin_auth']->setPassword($adminId,$p1) ) {
+            echo $GLOBALS['I18N']->get('Your password was changed succesfully').'<br/>';
+            echo '<p><a href="./" class="action-button">'.$GLOBALS['I18N']->get('Continue').'</a></p>';
+            //Token deletion.
+            $SQLquery = sprintf('delete from %s where admin = %d;', $GLOBALS['tables']['admin_password_request'], $adminId);
+            $query = Sql_Query($SQLquery);
+        } else {
+            //TODO how should this error be handled?
+            die("failed to set password");
+        }
     } else {
         echo $GLOBALS['I18N']->get('The passwords you entered are not the same.');
     }
