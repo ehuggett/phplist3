@@ -1,5 +1,6 @@
 <?php
 
+
 /*
 
 * ==============================================================================================================
@@ -105,7 +106,7 @@ $bounce_mailbox_purge_unprocessed = 1;
 // how many bounces in a row need to have occurred for a user to be marked unconfirmed
 $bounce_unsubscribe_threshold = 5;
 
-// choose the hash method for password
-// check the extended config for more info
+// set the hash method for subscriber passwords and link tracking signatures (no longer
+// used for admin password hashing). Check the extended config for more info
 // in most cases, it is fine to leave this as it is
 define('HASH_ALGO', 'sha256');

@@ -159,6 +159,9 @@ $commandline_users = array();
 // to 1. See README.passwords for more information
 define('ASKFORPASSWORD', 0);
 
+// WARNING: option will be deprecated, removed or renamed in a future release.
+// WARNING: Currently controls hash algorithm used for subscriber password hashing and link
+// WARNING: tracking signatures. No longer controls admin password hashing.
 // if you use passwords, they will be stored hashed
 // set this one to the algorythm to use. You can find out which ones are
 // supported by your system with the command
@@ -170,6 +173,19 @@ define('ASKFORPASSWORD', 0);
 // the system
 // if you change this, you may have to use the "Forgot password" system to get back in your installation
 define('HASH_ALGO', 'sha256');
+
+// Set the password hashing method for admin passwords, PASSWORD_DEFAULT is the recommended value, as this
+// allows automatic upgrades to stronger algorithms. If you change this passwords will be rehashed upon next login
+// see http://php.net/manual/en/password.constants.php for password constant names and cost values (2017: only bcyrpt!)
+define('PHPLIST_PASSWORD_ALGO', PASSWORD_DEFAULT);
+// An optional array of costs, PASSWORD_CONSTANT => COST_VALUE
+// define('PHPLIST_PASSWORD_COST', array(PASSWORD_BCRYPT => 10) );
+
+// Log thresholds for password hashing time in milliseconds.
+// * If logs contain warnings about hashing being too fast, you should look at PHPLIST_PASSWORD_COST
+// * Ideally you should not reduce the default cost, if the login delay is workable you may wish to increase the max time to
+//   prevent the warnings.
+define('PHPLIST_PASSWORD_COST_WARN', array('min' => 50, 'max' => 150) );
 
 // if you also want to force people who unsubscribe to provide a password before
 // processing their unsubscription, set this to 1. You need to have the above one set

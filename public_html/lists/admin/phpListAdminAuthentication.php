@@ -33,13 +33,13 @@ class phpListAdminAuthentication
             return array(0, s('your account has been disabled'));
 
         } elseif (//Password validation.
-        	password_verify($password, $passwordDB)
+            password_verify($password, $passwordDB)
         ) {
-        	// Password matches stored hash, now check if it should be updated before returning
-        	if (password_needs_rehash($passwordDB, PASSWORD_DEFAULT)) {
+            // Password matches stored hash, now check if it should be updated before returning
+            if (password_needs_rehash($passwordDB, PHPLIST_PASSWORD)) {
                 $this->setPassword($admindata['id'], $password);
-        	}
-        	// return sucess
+            }
+            // return sucess
             return array($admindata['id'], 'OK');
 
         } else {
@@ -84,16 +84,33 @@ class phpListAdminAuthentication
      */
     public function setPassword($adminid, $password) {
         if (empty($password)) return false;
-        $newpassword = password_hash($password, PASSWORD_DEFAULT);
+
+        $options = array();
+        if ( isset(PHPLIST_PASSWORD_COST[PHPLIST_PASSWORD] ) {
+            $options['cost'] = PHPLIST_PASSWORD_COST[PHPLIST_PASSWORD];
+        }
+
+        $time = 0 - microtime(true);
+        $hashed_password = password_hash($password, PHPLIST_PASSWORD, $options);
+        $time += microtime(true);
+
+        // log a notice if the time taken for password hashing did not fall in the expected range
+        if ($time <= PHPLIST_PASSWORD_COST_WARN['min'] ) {
+            logEvent('warning: password was too fast, ' . floor($time * 1000) . ' milliseconds, increase password cost!');
+        } elif ($time  >= PHPLIST_PASSWORD_COST_WARN['max'] ) {
+            logEvent('notice: password hashing was slow, ' . floor($time * 1000) . ' milliseconds');
+        }
+
         // "false or null may be returned" on error
-        if (is_string($newpassword) === false) {
-            die("password_compat / password_hash failure");
+        if (is_string($hashed_password) === false) {
+            logEvent('critical: password_hash failure');
+            die('password_hash failure');
             return false;
         }
 
         $res = Sql_Query(
             sprintf('update %s set password = "%s", passwordchanged=now() where id = "%d"',
-                $GLOBALS['tables']['admin'],$newpassword,$adminid )
+                $GLOBALS['tables']['admin'], $hashed_password, $adminid )
         );
 
         return $res === true;
