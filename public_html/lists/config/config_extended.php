@@ -176,16 +176,26 @@ define('HASH_ALGO', 'sha256');
 
 // Set the password hashing method for admin passwords, PASSWORD_DEFAULT is the recommended value, as this
 // allows automatic upgrades to stronger algorithms. If you change this passwords will be rehashed upon next login
-// see http://php.net/manual/en/password.constants.php for password constant names and cost values (2017: only bcyrpt!)
-define('PHPLIST_PASSWORD_ALGO', PASSWORD_DEFAULT);
-// An optional array of costs, PASSWORD_CONSTANT => COST_VALUE
-// define('PHPLIST_PASSWORD_COST', array(PASSWORD_BCRYPT => 10) );
+// see http://php.net/manual/en/password.constants.php for password constant names, the options shown on this page can
+// also be set below
+define('PHPLIST_PASSWORD', PASSWORD_DEFAULT);
+// Password hashing algorithm paramaters/options
+// you MUST NOT set options for the constant 'PASSWORD_DEAFULT' here or you may find yourself unable login after a php version upgrade.
+// you SHOULD NOT set a salt for bcrypt, a unique random salt is generated for each and every password hash by default
+$phplist_password_parameters = array(
 
-// Log thresholds for password hashing time in milliseconds.
-// * If logs contain warnings about hashing being too fast, you should look at PHPLIST_PASSWORD_COST
-// * Ideally you should not reduce the default cost, if the login delay is workable you may wish to increase the max time to
-//   prevent the warnings.
-define('PHPLIST_PASSWORD_COST_WARN', array('min' => 50, 'max' => 150) );
+    PASSWORD_BCRYPT => array(
+            'cost' => PASSWORD_BCRYPT_DEFAULT_COST,
+        ),
+// Uncomment the following block if you are running on php7.2+ and wish to configure Argon2i
+/*
+*    PASSWORD_ARGON2I => array(
+*            'memory_cost' => PASSWORD_ARGON2_DEFAULT_MEMORY_COST,
+*            'time_cost' => PASSWORD_ARGON2_DEFAULT_TIME_COST,
+*            'threads' => PASSWORD_ARGON2_DEFAULT_THREADS,
+*        ),
+*/
+);
 
 // if you also want to force people who unsubscribe to provide a password before
 // processing their unsubscription, set this to 1. You need to have the above one set

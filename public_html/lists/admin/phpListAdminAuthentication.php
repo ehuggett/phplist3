@@ -55,8 +55,8 @@ class phpListAdminAuthentication
             $compathash = hash(HASH_ALGO, $password);
             if (!empty($passwordDB) && hash_equals($passwordDB, $compathash)) {
                 $this->setPassword($admindata['id'], $password);
-            	// return sucess
-            	return array($admindata['id'], 'OK');
+                // return sucess
+                return array($admindata['id'], 'OK');
             }
 
             return array(0, s('incorrect password'));
@@ -86,22 +86,14 @@ class phpListAdminAuthentication
         if (empty($password)) return false;
 
         $options = array();
-        if ( isset(PHPLIST_PASSWORD_COST[PHPLIST_PASSWORD] ) {
-            $options['cost'] = PHPLIST_PASSWORD_COST[PHPLIST_PASSWORD];
+        if ( array_key_exists(PHPLIST_PASSWORD_DEFAULT, $GLOBALS['phplist_password_parameters']) ) {
+            // use user defined paramaters array from config
+            $options = $GLOBALS['phplist_password_parameters'][PHPLIST_PASSWORD_DEFAULT];
         }
 
-        $time = 0 - microtime(true);
         $hashed_password = password_hash($password, PHPLIST_PASSWORD, $options);
-        $time += microtime(true);
 
-        // log a notice if the time taken for password hashing did not fall in the expected range
-        if ($time <= PHPLIST_PASSWORD_COST_WARN['min'] ) {
-            logEvent('warning: password was too fast, ' . floor($time * 1000) . ' milliseconds, increase password cost!');
-        } elif ($time  >= PHPLIST_PASSWORD_COST_WARN['max'] ) {
-            logEvent('notice: password hashing was slow, ' . floor($time * 1000) . ' milliseconds');
-        }
-
-        // "false or null may be returned" on error
+        // "false or null may be returned" on error by password_compat, php core password_hash should return false on error
         if (is_string($hashed_password) === false) {
             logEvent('critical: password_hash failure');
             die('password_hash failure');
@@ -113,6 +105,7 @@ class phpListAdminAuthentication
                 $GLOBALS['tables']['admin'], $hashed_password, $adminid )
         );
 
+        // return true if the SQL query did not error
         return $res === true;
     }
 

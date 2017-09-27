@@ -303,6 +303,14 @@ if (!defined('HASH_ALGO')) {
 //# remember the length of a hashed string
 $hash_length = strlen(hash(HASH_ALGO, 'some text'));
 
+if (!defined('PHPLIST_PASSWORD')) {
+    define('PHPLIST_PASSWORD', PASSWORD_DEFAULT);
+}
+
+if (!isset($GLOBALS['phplist_password_parameters'])) {
+    $GLOBALS['phplist_password_parameters'] = array();
+}
+
 if (!defined('PHPMAILER')) {
     define('PHPMAILER', 1);
 }
